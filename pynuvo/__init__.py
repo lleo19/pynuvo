@@ -10,78 +10,116 @@ from functools import wraps
 from threading import RLock
 
 _LOGGER = logging.getLogger(__name__)
-#logging.basicConfig(format='%(asctime)s;%(levelname)s:%(message)s', level=logging.DEBUG)
+#logging.basicConfig(format='%(asctime)s;%(levelname)s:%(message)s', level=logging.DEBUG
 
 '''
-#Z0xPWRppp,SRCs,VOL-yy<CR>
+#Zx,ON,SRCs,VOLyy,DNDd,LOCKl<CR><LF>
 '''
-CONCERTO_PATTERN = re.compile('Z0(?P<zone>\d)'
-                     'PWR(?P<power>ON|OFF),'
+GRAND_CONCERTO_PWR_ON_PATTERN = re.compile('#Z(?P<zone>\d),'
+                     '(?P<power>ON),'
                      'SRC(?P<source>\d),'
-                     'VOL(?P<volume>-\d\d|MT)')
-
+                     'VOL(?P<volume>\d\d),'
+                     'DND(?P<dnd>\d),'
+                     'LOCK(?P<lock>\d)')
 
 '''
+#Zx,OFF<CR><LF>
+'''
+GRAND_CONCERTO_PWR_OFF_PATTERN = re.compile('#Z(?P<zone>\d),'
+                     '(?P<power>OFF)')
+
+'''
+#Zx,ON,SRCs,MUTE,DNDd,LOCKl<CR><LF>
+'''
+GRAND_CONCERTO_MUTE_PATTERN = re.compile('#Z(?P<zone>\d),'
+                     '(?P<power>ON),'
+                     'SRC(?P<source>\d),'
+                     '(?P<volume>MUTE),'
+                     'DND(?P<dnd>\d),'
+                     'LOCK(?P<lock>\d)')
+
+#'''
+##Z0xPWRppp,SRCs,VOL-yy<CR>
+#'''
+#CONCERTO_PATTERN = re.compile('Z0(?P<zone>\d)'
+#                     'PWR(?P<power>ON|OFF),'
+#                     'SRC(?P<source>\d),'
+#                     'VOL(?P<volume>-\d\d|MT)')
+
+
+
+#'''
 #Z0xPWRppp,SRCs,GRPt,VOL-yy<CR>
-'''
-SIMPLESE_PATTERN = re.compile('Z0(?P<zone>\d)'
-                     'PWR(?P<power>ON|OFF),'
-                     'SRC(?P<source>\d),'
-                     'GRP(?P<group>0|1),'
-                     'VOL(?P<volume>-\d\d|MT|XM)')
+#'''
+#SIMPLESE_PATTERN = re.compile('Z0(?P<zone>\d)'
+#                     'PWR(?P<power>ON|OFF),'
+#                     'SRC(?P<source>\d),'
+#                     'GRP(?P<group>0|1),'
+#                     'VOL(?P<volume>-\d\d|MT|XM)')
 
 
-'''
-Z02STR+"TUNER"
-'''
-SOURCE_PATTERN = re.compile('Z0(?P<zone>\d)'
-                     'STR\+\"(?P<name>.*)\"')
+#'''
+#Z02STR+"TUNER"
+#'''
+#SOURCE_PATTERN = re.compile('Z0(?P<zone>\d)'
+#                     'STR\+\"(?P<name>.*)\"')
 
 
-EOL = b'\r'
+EOL = b'\r\n'
 TIMEOUT_OP       = 0.2   # Number of seconds before serial operation timeout
 TIMEOUT_RESPONSE = 2.5   # Number of seconds before command response timeout
-VOLUME_DEFAULT  = -40    # Value used when zone is muted or otherwise unable to get volume integer
+VOLUME_DEFAULT  = 60    # Value used when zone is muted or otherwise unable to get volume integer
 
 class ZoneStatus(object):
     def __init__(self
                  ,zone: int
                  ,power: str
-                 ,source: int
-                 ,volume: float  # -78 -> 0
+                 ,source: int = '1'
+                 ,volume: str = '60'
+                 ,dnd: int = '0'
+                 ,lock: int = '0'
                  ):
         self.zone = zone
+        self.source = source
+        _LOGGER.debug('zone - %s' , zone)
+        _LOGGER.debug('power - %s' , power)
+        _LOGGER.debug('source - %s' , source)
+        _LOGGER.debug('volume - %s', volume)
         if 'ON' in power:
            self.power = bool(1)
         else:
            self.power = bool(0)
-        self.source = str(source)
-        self.sourcename = ''
+#        self.sourcename = ''
 #        self.treble = treble
 #        self.bass = bass
-        if 'MT' in volume:
+        if 'MUTE' in volume:
            self.mute = bool(1)
-           self.volume = VOLUME_DEFAULT
+           self.volume = int(VOLUME_DEFAULT)
         else:
            self.mute = bool(0)
-           self.volume = int(volume) 
-        self.treble = 0 
-        self.bass = 0
+           self.volume = int(volume)
+#        self.treble = 0
+#        self.bass = 0
+
 
     @classmethod
     def from_string(cls, string: bytes):
         if not string:
             return None
+#        _LOGGER.debug('string passed to ZoneStatus.from_string - %s' , string)
 
         match = _parse_response(string)
-   
+        
         if not match:
             return None
 
         try:
+           #_LOGGER.debug('match.groups =- %s' , match.groups())
            rtn = ZoneStatus(*[str(m) for m in match.groups()])
+           #rtn = ZoneStatus(match.groups())
         except:
            rtn = None
+        #_LOGGER.debug('ZoneStatus rtn - %s' , rtn)
         return rtn
 
 class Nuvo(object):
@@ -167,70 +205,66 @@ def _parse_response(string: bytes):
    :param request: request that is sent to the nuvo
    :return: regular expression return match(s) 
    """
-   match = re.search(CONCERTO_PATTERN, string)
+   match = re.search(GRAND_CONCERTO_PWR_ON_PATTERN, string)
    if match:
-      _LOGGER.debug('CONCERTO_PATTERN - Match')
+      #_LOGGER.debug('GRAND_CONCERTO_PWR_ON_PATTERN - Match - %s', match)
       return match
 
    if not match:
-      match = re.search(SIMPLESE_PATTERN, string)
+      match = re.search(GRAND_CONCERTO_PWR_OFF_PATTERN, string)
       if match:
-         _LOGGER.debug('SIMPLESE_PATTERN - Match')
-         return match
+        #_LOGGER.debug('GRAND_CONCERTO_PWR_OFF_PATTERN - Match - %s', match)
+        return match
 
    if not match:
-      match = re.search(SOURCE_PATTERN, string)
+      match = re.search(GRAND_CONCERTO_MUTE_PATTERN, string)
       if match:
-         _LOGGER.debug('SOURCE_PATTERN - Match')
-         return match
-
-   if (string == '#Busy'):
-       _LOGGER.debug('BUSY RESPONSE - TRY AGAIN')
-   return None
+        #_LOGGER.debug('GRAND_CONCERTO_MUTE_PATTERN - Match - %s', match)
+        return match
 
    if not match:
        _LOGGER.debug('NO MATCH - %s' , string)
    return None
 
 def _format_zone_status_request(zone: int) -> str:
-    return 'Z{:0=2}STATUS'.format(zone)
+    return 'Z{}STATUS?'.format(zone)
 
 def _format_set_power(zone: int, power: bool) -> str:
     zone = int(zone)
     if (power):
-       return 'Z{:0=2}ON'.format(zone) 
+       return 'Z{}ON'.format(zone) 
     else:
-       return 'Z{:0=2}OFF'.format(zone)
+       return 'Z{}OFF'.format(zone)
 
 def _format_set_mute(zone: int, mute: bool) -> str:
     if (mute):
-       return 'Z{:0=2}MTON'.format(int(zone))
+       return 'Z{}MUTE'.format(int(zone))
     else:
-       return 'Z{:0=2}MTOFF'.format(int(zone))
+       return 'Z{}MUTEOFF'.format(int(zone))
 
-def _format_set_volume(zone: int, volume: float) -> str:
-    # If muted, status has no info on volume level
-    if _is_int(volume):
-       # Negative sign in volume parm produces erronous result
-       volume = abs(volume)
-       volume = round(volume,0)
-    else:
-       # set to default value
-       volume = abs(VOLUME_DEFAULT) 
+def _format_set_volume(zone: int, volume: int) -> str:
+#    # If muted, status has no info on volume level
+#    if _is_int(volume):
+#       # Negative sign in volume parm produces erronous result
+#       volume = abs(volume)
+#       volume = round(volume,0)
+#    else:
+#       # set to default value
+#       volume = abs(VOLUME_DEFAULT) 
 
-    return 'Z{:0=2}VOL{:0=2}'.format(int(zone),volume)
+    return 'Z{}VOL{:0=2}'.format(int(zone),volume)
 
 def _format_set_treble(zone: int, treble: int) -> bytes:
     treble = int(max(12, min(treble, -12)))
-    return 'Z{:0=2}TREB{:0=2}'.format(int(zone),treble)
+    return 'Z{}TREB{:0=2}'.format(int(zone),treble)
 
 def _format_set_bass(zone: int, bass: int) -> bytes:
     bass = int(max(12, min(bass, -12)))
-    return 'Z{:0=2}BASS{:0=2}'.format(int(zone),bass)
+    return 'Z{}BASS{:0=2}'.format(int(zone),bass)
 
 def _format_set_source(zone: int, source: int) -> str:
     source = int(max(1, min(int(source), 6)))
-    return 'Z{:0=2}SRC{}'.format(int(zone),source)
+    return 'Z{}SRC{}'.format(int(zone),source)
 
 def get_nuvo(port_url):
     """
@@ -252,7 +286,7 @@ def get_nuvo(port_url):
         def __init__(self, port_url):
             _LOGGER.info('Attempting connection - "%s"', port_url)
             self._port = serial.serial_for_url(port_url, do_not_open=True)
-            self._port.baudrate = 9600
+            self._port.baudrate = 57600
             self._port.stopbits = serial.STOPBITS_ONE
             self._port.bytesize = serial.EIGHTBITS
             self._port.parity = serial.PARITY_NONE
@@ -279,7 +313,7 @@ def get_nuvo(port_url):
         def _listen_maybewait(self, wait_for_response: bool):
 
             no_data = False
-            receive_buffer = b''
+            receive_buffer = b'' 
             message = b''
             start_time = time.time()
             timeout = TIMEOUT_RESPONSE 
@@ -289,22 +323,23 @@ def get_nuvo(port_url):
 
                # Exit if timeout
                if( (time.time() - start_time) > timeout ):
-                  _LOGGER.warning('Expected response from command but no response before timeout')
+                  #_LOGGER.warning('Expected response from command but no response before timeout')
                   return None
 
                # fill buffer until we get term seperator 
                data = self._port.read(1)
-
+               #_LOGGER.debug('Received data: %s', data)
                if data:
                   receive_buffer += data
 
                   if EOL in receive_buffer:
+                     #_LOGGER.debug('Received buffer: %s', receive_buffer)
                      message, sep, receive_buffer = receive_buffer.partition(EOL)
-                     _LOGGER.debug('Received: %s', message)
+                     #_LOGGER.debug('Received: %s', message)
                      _parse_response(str(message))
                      return(str(message))
-                  else:
-                     _LOGGER.debug('Expecting response from command sent - Data received but no EOL yet :(')
+#                  else:
+#                     _LOGGER.debug('Expecting response from command sent - Data received but no EOL yet :(')
                else:
                   _LOGGER.debug('Expecting response from command sent - No Data received')
                   if ( wait_for_response == False ): 
@@ -327,27 +362,31 @@ def get_nuvo(port_url):
 
             # Process expected response
             rtn =  self._listen_maybewait(True)
-
+#           _LOGGER.debug('Request return: %s', rtn)
             return rtn
 
         @synchronized
         def zone_status(self, zone: int):
-            # Send command multiple times, since we need result back, and rarely response can be wrong type 
-            for count in range(1,5):
-               try:
-                  rtn = ZoneStatus.from_string(self._process_request(_format_zone_status_request(zone)))
-                  if rtn == None:
-                     _LOGGER.debug('Zone Status Request - Response Invalid - Retry Count: %d' , count)
-                     raise ValueError('Zone Status Request - Response Invalid')
-                  else:
-                     return rtn
-                     break  # Successful execution; exit for loop
-               except:
-                  rtn = None
-               #Wait 1 sec between retry attempt(s)
-               time.sleep(1)
-               continue  # end of for loop // retry
-            return rtn
+#            # Send command multiple times, since we need result back, and rarely response can be wrong type 
+#            for count in range(1,2):
+#               try:
+#                  #_LOGGER.debug('zone_status string: %s', self._process_request(_format_zone_status_request(zone)))
+#                  rtn = ZoneStatus.from_string(self._process_request(_format_zone_status_request(zone)))
+#                  #_LOGGER.debug('zone_status rtn: %s', rtn)
+#                  if rtn == None:
+#                     _LOGGER.debug('Zone Status Request - Response Invalid - Retry Count: %d' , count)
+#                     raise ValueError('Zone Status Request - Response Invalid')
+#                  else:
+#                     return rtn
+#                     break  # Successful execution; exit for loop
+#               except:
+#                  rtn = None
+#               #Wait 1 sec between retry attempt(s)
+#               time.sleep(1)
+#               continue  # end of for loop // retry
+#            return rtn
+
+            return ZoneStatus.from_string(self._process_request(_format_zone_status_request(zone)))
 
         @synchronized
         def set_power(self, zone: int, power: bool):
@@ -358,7 +397,7 @@ def get_nuvo(port_url):
             self._process_request(_format_set_mute(zone, mute))
 
         @synchronized
-        def set_volume(self, zone: int, volume: float):
+        def set_volume(self, zone: int, volume: int):
             self._process_request(_format_set_volume(zone, volume))
 
         @synchronized
