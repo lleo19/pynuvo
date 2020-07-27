@@ -46,7 +46,7 @@ setuptools.setup(name='pynuvo',
       install_requires=['pyserial>=3.4'],
       long_description=long_description,
       long_description_content_type="text/markdown",
-      url="https://github.com/ejonesnospam/pynuvo",
+      url="https://github.com/lleo19/pynuvo",
       packages=setuptools.find_packages(),
       classifiers=[
         "Programming Language :: Python :: 3",
