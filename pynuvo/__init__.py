@@ -155,7 +155,7 @@ class Nuvo(object):
         """
         Set volume for zone
         :param zone: zone 1.12        
-        :param volume: float from -78 to 0 inclusive
+        :param volume: float from -79 to 0 inclusive
         """
         raise NotImplemented()
 
@@ -243,15 +243,14 @@ def _format_set_mute(zone: int, mute: bool) -> str:
        return 'Z{}MUTEOFF'.format(int(zone))
 
 def _format_set_volume(zone: int, volume: int) -> str:
-#    # If muted, status has no info on volume level
-#    if _is_int(volume):
-#       # Negative sign in volume parm produces erronous result
-#       volume = abs(volume)
-#       volume = round(volume,0)
-#    else:
-#       # set to default value
-#       volume = abs(VOLUME_DEFAULT) 
-
+    # If muted, status has no info on volume level
+    if _is_int(volume):
+       # Negative sign in volume parm produces erronous result
+       volume = abs(volume)
+       volume = round(volume,0)
+    else:
+       # set to default value
+       volume = abs(VOLUME_DEFAULT) 
     return 'Z{}VOL{:0=2}'.format(int(zone),volume)
 
 def _format_set_treble(zone: int, treble: int) -> bytes:
