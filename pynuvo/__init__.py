@@ -417,8 +417,8 @@ def get_nuvo(port_url):
             self.set_mute(status.zone, status.mute)
             self.set_volume(status.zone, status.volume)
             self.set_source(status.zone, status.source)
-#            self.set_treble(status.zone, status.treble)
-#            self.set_bass(status.zone, status.bass)
+            self.set_treble(status.zone, status.treble)
+            self.set_bass(status.zone, status.bass)
 
     return NuvoSync(port_url)
 
