@@ -38,6 +38,25 @@ GRAND_CONCERTO_MUTE_PATTERN = re.compile('#Z(?P<zone>\d),'
                      'DND(?P<dnd>\d),'
                      'LOCK(?P<lock>\d)')
 
+'''
+#ZCFGx,BASSbb,TREBtt,BALcc,LOUDCMPm
+'''
+GRAND_CONCERTO_EQ_PATTER = re.compile('#ZCFG(?P<zone>\d),'
+                     'BASS(?P<bass>\d\d),'
+                     'TREB(?P<treble>\d\d),'
+                     'BAL(?P<balance>C|L|R\d\d),'
+                     'LOUDCMP(?P<loudcmp>0|1)')
+# ?P(<balance>C|L|R\d\d)
+
+#'''
+##ZCFGx,BASSbb,TREBtt,BALC,LOUDCMPm
+#'''
+#GRAND_CONCERTO_EQC_PATTER = re.compile('#ZCFG(?P<zone>\d),'
+#                     'BASS(?P<bass>\d\d),'
+#                     'TREB(?P<treb>\d\d),'
+#                     'BAL(?P<balance>C),'
+#                     'LOUDCMP(?P<loudcmp>0|1)')
+
 #'''
 ##Z0xPWRppp,SRCs,VOL-yy<CR>
 #'''
@@ -98,8 +117,8 @@ class ZoneStatus(object):
         else:
            self.mute = bool(0)
            self.volume = int(volume)
-#        self.treble = 0
-#        self.bass = 0
+#           self.treble = 0
+#           self.bass = 0
 
 
     @classmethod
@@ -130,7 +149,7 @@ class Nuvo(object):
     def zone_status(self, zone: int):
         """
         Get the structure representing the status of the zone
-        :param zone: zone 1.12
+        :param zone: zone 1.20
         :return: status of the zone or None
         """
         raise NotImplemented()
@@ -138,7 +157,7 @@ class Nuvo(object):
     def set_power(self, zone: int, power: bool):
         """
         Turn zone on or off
-        :param zone: zone 1.12        
+        :param zone: zone 1.20        
         :param power: True to turn on, False to turn off
         """
         raise NotImplemented()
@@ -146,7 +165,7 @@ class Nuvo(object):
     def set_mute(self, zone: int, mute: bool):
         """
         Mute zone on or off
-        :param zone: zone 1.12        
+        :param zone: zone 1.20        
         :param mute: True to mute, False to unmute
         """
         raise NotImplemented()
@@ -154,7 +173,7 @@ class Nuvo(object):
     def set_volume(self, zone: int, volume: float):
         """
         Set volume for zone
-        :param zone: zone 1.12        
+        :param zone: zone 1.20        
         :param volume: float from -79 to 0 inclusive
         """
         raise NotImplemented()
@@ -162,23 +181,23 @@ class Nuvo(object):
     def set_treble(self, zone: int, treble: float):
         """
         Set treble for zone
-        :param zone: zone 1.12        
-        :param treble: float from -12 to 12 inclusive
+        :param zone: zone 1.20        
+        :param treble: float from -18 to 18 inclusive in increments of 2
         """
         raise NotImplemented()
 
     def set_bass(self, zone: int, bass: int):
         """
         Set bass for zone
-        :param zone: zone 1.12        
-        :param bass: float from -12 to 12 inclusive 
+        :param zone: zone 1.20        
+        :param bass: float from -18 to 18 inclusive in increments of 2 
         """
         raise NotImplemented()
 
     def set_source(self, zone: int, source: int):
         """
         Set source for zone
-        :param zone: zone 1.6        
+        :param zone: zone 1.6
         :param source: integer from 1 to 6 inclusive
         """
         raise NotImplemented()
@@ -254,11 +273,11 @@ def _format_set_volume(zone: int, volume: int) -> str:
     return 'Z{}VOL{:0=2}'.format(int(zone),volume)
 
 def _format_set_treble(zone: int, treble: int) -> bytes:
-    treble = int(max(12, min(treble, -12)))
+    treble = int(max(18, min(treble, -18)))
     return 'Z{}TREB{:0=2}'.format(int(zone),treble)
 
 def _format_set_bass(zone: int, bass: int) -> bytes:
-    bass = int(max(12, min(bass, -12)))
+    bass = int(max(18, min(bass, -18)))
     return 'Z{}BASS{:0=2}'.format(int(zone),bass)
 
 def _format_set_source(zone: int, source: int) -> str:
