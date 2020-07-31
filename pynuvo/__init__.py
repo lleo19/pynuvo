@@ -1,12 +1,11 @@
-import asyncio
 import functools
-import io
 import logging
 import re
+import io
 import serial
 import string
 import time
-
+import asyncio
 from functools import wraps
 from threading import RLock
 
@@ -39,25 +38,6 @@ GRAND_CONCERTO_MUTE_PATTERN = re.compile('#Z(?P<zone>\d),'
                      'DND(?P<dnd>\d),'
                      'LOCK(?P<lock>\d)')
 
-'''
-#ZCFGx,BASSbb,TREBtt,BALcc,LOUDCMPm
-'''
-GRAND_CONCERTO_EQ_PATTERN = re.compile('#ZCFG(?P<zone>\d),'
-                     'BASS(?P<bass>\d\d),'
-                     'TREB(?P<treble>\d\d),'
-                     'BAL(?P<balance>C|L|R\d\d),'
-                     'LOUDCMP(?P<loudcmp>0|1)')
-# ?P(<balance>C|L|R\d\d)
-
-#'''
-##ZCFGx,BASSbb,TREBtt,BALC,LOUDCMPm
-#'''
-#GRAND_CONCERTO_EQC_PATTER = re.compile('#ZCFG(?P<zone>\d),'
-#                     'BASS(?P<bass>\d\d),'
-#                     'TREB(?P<treb>\d\d),'
-#                     'BAL(?P<balance>C),'
-#                     'LOUDCMP(?P<loudcmp>0|1)')
-
 #'''
 ##Z0xPWRppp,SRCs,VOL-yy<CR>
 #'''
@@ -88,7 +68,7 @@ GRAND_CONCERTO_EQ_PATTERN = re.compile('#ZCFG(?P<zone>\d),'
 EOL = b'\r\n'
 TIMEOUT_OP       = 0.2   # Number of seconds before serial operation timeout
 TIMEOUT_RESPONSE = 2.5   # Number of seconds before command response timeout
-VOLUME_DEFAULT   = 60    # Value used when zone is muted or otherwise unable to get volume integer
+VOLUME_DEFAULT  = 60    # Value used when zone is muted or otherwise unable to get volume integer
 
 class ZoneStatus(object):
     def __init__(self
@@ -109,12 +89,18 @@ class ZoneStatus(object):
            self.power = bool(1)
         else:
            self.power = bool(0)
+#        self.sourcename = ''
+#        self.treble = treble
+#        self.bass = bass
         if 'MUTE' in volume:
            self.mute = bool(1)
            self.volume = int(VOLUME_DEFAULT)
         else:
            self.mute = bool(0)
            self.volume = int(volume)
+#        self.treble = 0
+#        self.bass = 0
+
 
     @classmethod
     def from_string(cls, string: bytes):
@@ -144,7 +130,7 @@ class Nuvo(object):
     def zone_status(self, zone: int):
         """
         Get the structure representing the status of the zone
-        :param zone: zone 1.20
+        :param zone: zone 1.12
         :return: status of the zone or None
         """
         raise NotImplemented()
@@ -152,7 +138,7 @@ class Nuvo(object):
     def set_power(self, zone: int, power: bool):
         """
         Turn zone on or off
-        :param zone: zone 1.20        
+        :param zone: zone 1.12        
         :param power: True to turn on, False to turn off
         """
         raise NotImplemented()
@@ -160,7 +146,7 @@ class Nuvo(object):
     def set_mute(self, zone: int, mute: bool):
         """
         Mute zone on or off
-        :param zone: zone 1.20        
+        :param zone: zone 1.12        
         :param mute: True to mute, False to unmute
         """
         raise NotImplemented()
@@ -168,7 +154,7 @@ class Nuvo(object):
     def set_volume(self, zone: int, volume: float):
         """
         Set volume for zone
-        :param zone: zone 1.20        
+        :param zone: zone 1.12        
         :param volume: float from -79 to 0 inclusive
         """
         raise NotImplemented()
@@ -176,23 +162,23 @@ class Nuvo(object):
     def set_treble(self, zone: int, treble: float):
         """
         Set treble for zone
-        :param zone: zone 1.20        
-        :param treble: float from -18 to 18 inclusive in increments of 2
+        :param zone: zone 1.12        
+        :param treble: float from -12 to 12 inclusive
         """
         raise NotImplemented()
 
     def set_bass(self, zone: int, bass: int):
         """
         Set bass for zone
-        :param zone: zone 1.20        
-        :param bass: float from -18 to 18 inclusive in increments of 2 
+        :param zone: zone 1.12        
+        :param bass: float from -12 to 12 inclusive 
         """
         raise NotImplemented()
 
     def set_source(self, zone: int, source: int):
         """
         Set source for zone
-        :param zone: zone 1.6
+        :param zone: zone 1.6        
         :param source: integer from 1 to 6 inclusive
         """
         raise NotImplemented()
@@ -235,12 +221,6 @@ def _parse_response(string: bytes):
       if match:
         #_LOGGER.debug('GRAND_CONCERTO_MUTE_PATTERN - Match - %s', match)
         return match
-   
-  if not match:
-      match = re.search(GRAND_CONCERTO_EQ_PATTERN, string)
-      if match:
-        #_LOGGER.debug('GRAND_CONCERTO_EQ_PATTERN - Match - %s', match)
-        return match
 
    if not match:
        _LOGGER.debug('NO MATCH - %s' , string)
@@ -248,9 +228,6 @@ def _parse_response(string: bytes):
 
 def _format_zone_status_request(zone: int) -> str:
     return 'Z{}STATUS?'.format(zone)
-
-def _format_zone_setup_request(zone: int) -> str:
-    return 'ZCFG{}STATUS?'.format(zone)
 
 def _format_set_power(zone: int, power: bool) -> str:
     zone = int(zone)
@@ -277,12 +254,12 @@ def _format_set_volume(zone: int, volume: int) -> str:
     return 'Z{}VOL{:0=2}'.format(int(zone),volume)
 
 def _format_set_treble(zone: int, treble: int) -> bytes:
-    treble = int(max(18, min(treble, -18)))
-    return 'ZCFG{}TREB{:0=2}'.format(int(zone),treble)
+    treble = int(max(12, min(treble, -12)))
+    return 'Z{}TREB{:0=2}'.format(int(zone),treble)
 
 def _format_set_bass(zone: int, bass: int) -> bytes:
-    bass = int(max(18, min(bass, -18)))
-    return 'ZCFG{}BASS{:0=2}'.format(int(zone),bass)
+    bass = int(max(12, min(bass, -12)))
+    return 'Z{}BASS{:0=2}'.format(int(zone),bass)
 
 def _format_set_source(zone: int, source: int) -> str:
     source = int(max(1, min(int(source), 6)))
@@ -389,6 +366,25 @@ def get_nuvo(port_url):
 
         @synchronized
         def zone_status(self, zone: int):
+#            # Send command multiple times, since we need result back, and rarely response can be wrong type 
+#            for count in range(1,2):
+#               try:
+#                  #_LOGGER.debug('zone_status string: %s', self._process_request(_format_zone_status_request(zone)))
+#                  rtn = ZoneStatus.from_string(self._process_request(_format_zone_status_request(zone)))
+#                  #_LOGGER.debug('zone_status rtn: %s', rtn)
+#                  if rtn == None:
+#                     _LOGGER.debug('Zone Status Request - Response Invalid - Retry Count: %d' , count)
+#                     raise ValueError('Zone Status Request - Response Invalid')
+#                  else:
+#                     return rtn
+#                     break  # Successful execution; exit for loop
+#               except:
+#                  rtn = None
+#               #Wait 1 sec between retry attempt(s)
+#               time.sleep(1)
+#               continue  # end of for loop // retry
+#            return rtn
+
             return ZoneStatus.from_string(self._process_request(_format_zone_status_request(zone)))
 
         @synchronized
@@ -421,7 +417,8 @@ def get_nuvo(port_url):
             self.set_mute(status.zone, status.mute)
             self.set_volume(status.zone, status.volume)
             self.set_source(status.zone, status.source)
-#            self.set_treble(status.zone, status.treble)
-#            self.set_bass(status.zone, status.bass)
+            self.set_treble(status.zone, status.treble)
+            self.set_bass(status.zone, status.bass)
 
     return NuvoSync(port_url)
+  
