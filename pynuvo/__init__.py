@@ -238,23 +238,22 @@ def _parse_response(string: bytes):
             # _LOGGER.debug('GRAND_CONCERTO_MUTE_PATTERN - Match - %s', match)
             return match
 
+    if not match:
+        match = re.search(GRAND_CONCERTO_EQ_PATTERN, string)
+        if match:
+            # _LOGGER.debug('GRAND_CONCERTO_EQ_PATTERN - Match - %s', match)
+            return match
 
-if not match:
-    match = re.search(GRAND_CONCERTO_EQ_PATTERN, string)
-    if match:
-        # _LOGGER.debug('GRAND_CONCERTO_EQ_PATTERN - Match - %s', match)
-        return match
-
-if not match:
-    _LOGGER.debug('NO MATCH - %s', string)
-return None
+    if not match:
+        _LOGGER.debug('NO MATCH - %s', string)
+    return None
 
 
 def _format_zone_status_request(zone: int) -> str:
     return 'Z{}STATUS?'.format(zone)
 
 
-def _format_zone_setup_request(zone: int) -> str:
+def _format_zone_eq_request(zone: int) -> str:
     return 'ZCFG{}STATUS?'.format(zone)
 
 
@@ -265,7 +264,7 @@ def _format_set_power(zone: int, power: bool) -> str:
     else:
         return 'Z{}OFF'.format(zone)
 
-
+      
 def _format_set_mute(zone: int, mute: bool) -> str:
     if (mute):
         return 'Z{}MUTE'.format(int(zone))
