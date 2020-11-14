@@ -301,7 +301,7 @@ def get_nuvo(port_url):
             """
             #format and send output command
             lineout = "*" + request + "\r"
-            _LOGGER.debug('Sending "%s"', request)
+            _LOGGER.debug('Sending "%s"', lineout)
             #Below line is not displayed properly in logger
             #_LOGGER.info('Sending "%s"', lineout)
             self._port.write(lineout.encode())
