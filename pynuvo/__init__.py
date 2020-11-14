@@ -89,15 +89,16 @@ class ZoneStatus(object):
            self.power = bool(1)
         else:
            self.power = bool(0)
-#        self.sourcename = ''
+        self.sourcename = ''
 #        self.treble = treble
 #        self.bass = bass
+        self.volume = int(volume)
         if 'MUTE' in volume:
            self.mute = bool(1)
 #           self.volume = int(VOLUME_DEFAULT)
         else:
            self.mute = bool(0)
-           self.volume = int(volume)
+#           self.volume = int(volume)
 #        self.treble = 0
 #        self.bass = 0
 
@@ -243,10 +244,10 @@ def _format_set_mute(zone: int, mute: bool) -> str:
        return 'Z{}MUTEOFF'.format(int(zone))
 
 def _format_set_volume(zone: int, volume: int) -> str:
-    if _is_int(volume):
+#    if _is_int(volume):
        # Negative sign in volume parm produces erronous result
-       volume = abs(volume)
-       volume = round(volume,0)
+    volume = abs(volume)
+    volume = round(volume,0)
 #    else:
 #       # set to default value
 #       volume = abs(VOLUME_DEFAULT) 
