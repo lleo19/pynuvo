@@ -335,13 +335,15 @@ def get_nuvo(port_url):
                      _LOGGER.debug('Received: %s', message)
                      _parse_response(str(message))
                      return(str(message))
-                  else:
+                  #else:
+                  #   pass
                      #_LOGGER.debug('Expecting response from command sent - Data received but no EOL yet...')
 
                else:
-                  _LOGGER.debug('No Data received - Looking again if wait_for_response is True')
+
                   if ( wait_for_response == False ): 
                      no_data = True
+                     _LOGGER.debug('Expecting response from command sent - No Data received')
                   continue
 
             return None
