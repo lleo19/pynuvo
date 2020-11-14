@@ -105,7 +105,7 @@ class ZoneStatus(object):
     def from_string(cls, string: bytes):
         if not string:
             return None
-#        _LOGGER.debug('string passed to ZoneStatus.from_string - %s' , string)
+        _LOGGER.debug('string passed to ZoneStatus.from_string - %s' , string)
 
         match = _parse_response(string)
         
@@ -113,12 +113,12 @@ class ZoneStatus(object):
             return None
 
         try:
-           #_LOGGER.debug('match.groups =- %s' , match.groups())
+           _LOGGER.debug('match.groups =- %s' , match.groups())
            rtn = ZoneStatus(*[str(m) for m in match.groups()])
            #rtn = ZoneStatus(match.groups())
         except:
            rtn = None
-        #_LOGGER.debug('ZoneStatus rtn - %s' , rtn)
+        _LOGGER.debug('ZoneStatus rtn - %s' , rtn)
         return rtn
 
 class Nuvo(object):
@@ -206,19 +206,19 @@ def _parse_response(string: bytes):
    """
    match = re.search(GRAND_CONCERTO_PWR_ON_PATTERN, string)
    if match:
-      #_LOGGER.debug('GRAND_CONCERTO_PWR_ON_PATTERN - Match - %s', match)
+      _LOGGER.debug('GRAND_CONCERTO_PWR_ON_PATTERN - Match - %s', match)
       return match
 
    if not match:
       match = re.search(GRAND_CONCERTO_PWR_OFF_PATTERN, string)
       if match:
-        #_LOGGER.debug('GRAND_CONCERTO_PWR_OFF_PATTERN - Match - %s', match)
+        _LOGGER.debug('GRAND_CONCERTO_PWR_OFF_PATTERN - Match - %s', match)
         return match
 
    if not match:
       match = re.search(GRAND_CONCERTO_MUTE_PATTERN, string)
       if match:
-        #_LOGGER.debug('GRAND_CONCERTO_MUTE_PATTERN - Match - %s', match)
+        _LOGGER.debug('GRAND_CONCERTO_MUTE_PATTERN - Match - %s', match)
         return match
 
    if not match:
@@ -334,13 +334,13 @@ def get_nuvo(port_url):
                      return(str(message))
                   else:
                      pass
-                     _LOGGER.debug('Expecting response from command sent - Data received but no EOL yet...')
+#                     _LOGGER.debug('Expecting response from command sent - Data received but no EOL yet...')
 
                else:
 
                   if ( wait_for_response == False ): 
                      no_data = True
-                     _LOGGER.debug('Expecting response from command sent - No Data received')
+#                     _LOGGER.debug('Expecting response from command sent - No Data received')
                   continue
 
             return None
