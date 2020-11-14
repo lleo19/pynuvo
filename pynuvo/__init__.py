@@ -85,10 +85,6 @@ class ZoneStatus(object):
            self.power = bool(1)
         else:
            self.power = bool(0)
-#        self.sourcename = ''
-#        self.treble = treble
-#        self.bass = bass
-#        self.volume = int(volume)
         if 'MUTE' in volume:
            self.mute = bool(1)
            self.volume = None
@@ -103,7 +99,7 @@ class ZoneStatus(object):
         _LOGGER.debug('volume - %s' , volume)
         _LOGGER.debug('dnd - %s' , dnd)
         _LOGGER.debug('lock - %s' , lock)
-        _LOGGER.debug('mute - %s' , mute)
+#        _LOGGER.debug('mute - %s' , mute)
 
     @classmethod
     def from_string(cls, string: bytes):
