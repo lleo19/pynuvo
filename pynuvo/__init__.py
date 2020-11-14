@@ -92,7 +92,7 @@ class ZoneStatus(object):
 #        self.volume = int(volume)
         if 'MUTE' in volume:
            self.mute = bool(1)
-           self.volume = none
+           self.volume = None
         else:
            self.mute = bool(0)
            self.volume = volume
