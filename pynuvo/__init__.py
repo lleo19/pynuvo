@@ -76,7 +76,6 @@ class ZoneStatus(object):
                  ,power: str
                  ,source: int = '1'
                  ,volume: int = '60'
-                 ,mute: int = '0'
                  ,dnd: int = '0'
                  ,lock: int = '0'
                  ):
@@ -159,7 +158,7 @@ class Nuvo(object):
         """
         Set volume for zone
         :param zone: zone 1.12        
-        :param volume: float from -79 to 0 inclusive
+        :param volume: float from 79(min) to 0(max) inclusive
         """
         raise NotImplemented()
 
@@ -250,7 +249,7 @@ def _format_set_volume(zone: int, volume: int) -> str:
     if _is_int(volume):
        return 'Z{}VOL{:0=2}'.format(int(zone),int(volume))
     else:
-       return
+       return None
 
 def _format_set_treble(zone: int, treble: int) -> bytes:
     treble = int(max(12, min(treble, -12)))
@@ -307,7 +306,10 @@ def get_nuvo(port_url):
 
 
         def _listen_maybewait(self, wait_for_response: bool):
-
+            """
+            :receives and parses data from nuvo until EOL or timeout
+            :return: None
+            """
             no_data = False
             receive_buffer = b'' 
             message = b''
