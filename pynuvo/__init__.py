@@ -325,18 +325,18 @@ def get_nuvo(port_url):
 
                # fill buffer until we get term seperator 
                data = self._port.read(1)
-               _LOGGER.debug('Received data: %s', data)
+               #_LOGGER.debug('Received data: %s', data)
                if data:
                   receive_buffer += data
 
                   if EOL in receive_buffer:
-                     #_LOGGER.debug('Received buffer: %s', receive_buffer)
+                     _LOGGER.debug('Received buffer: %s', receive_buffer)
                      message, sep, receive_buffer = receive_buffer.partition(EOL)
-                     #_LOGGER.debug('Received: %s', message)
+                     _LOGGER.debug('Received: %s', message)
                      _parse_response(str(message))
                      return(str(message))
                   else:
-                     _LOGGER.debug('Expecting response from command sent - Data received but no EOL yet :(')
+                     _LOGGER.debug('Expecting response from command sent - Data received but no EOL yet...')
                else:
                   _LOGGER.debug('Expecting response from command sent - No Data received')
                   if ( wait_for_response == False ): 
