@@ -92,10 +92,10 @@ class ZoneStatus(object):
 #        self.volume = int(volume)
         if 'MUTE' in volume:
            self.mute = bool(1)
-#           self.volume = int(VOLUME_DEFAULT)
+           self.volume = none
         else:
            self.mute = bool(0)
-        self.volume = volume
+           self.volume = volume
 #        self.treble = 0
 #        self.bass = 0
         
@@ -242,7 +242,7 @@ def _format_set_power(zone: int, power: bool) -> str:
 
 def _format_set_mute(zone: int, mute: bool) -> str:
     if (mute):
-       return 'Z{}MUTE'.format(int(zone))
+       return 'Z{}MUTEON'.format(int(zone))
     else:
        return 'Z{}MUTEOFF'.format(int(zone))
 
