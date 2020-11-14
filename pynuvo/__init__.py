@@ -302,8 +302,6 @@ def get_nuvo(port_url):
             #format and send output command
             lineout = "*" + request + "\r"
             _LOGGER.debug('Sending "%s"', lineout)
-            #Below line is not displayed properly in logger
-            #_LOGGER.info('Sending "%s"', lineout)
             self._port.write(lineout.encode())
             self._port.flush() # it is buffering
             return True
@@ -322,12 +320,12 @@ def get_nuvo(port_url):
 
                # Exit if timeout
                if( (time.time() - start_time) > timeout ):
-                  #_LOGGER.warning('Expected response from command but no response before timeout')
+                  _LOGGER.warning('Expected response from command but no response before timeout')
                   return None
 
                # fill buffer until we get term seperator 
                data = self._port.read(1)
-               #_LOGGER.debug('Received data: %s', data)
+               _LOGGER.debug('Received data: %s', data)
                if data:
                   receive_buffer += data
 
@@ -337,8 +335,8 @@ def get_nuvo(port_url):
                      #_LOGGER.debug('Received: %s', message)
                      _parse_response(str(message))
                      return(str(message))
-#                  else:
-#                     _LOGGER.debug('Expecting response from command sent - Data received but no EOL yet :(')
+                  else:
+                     _LOGGER.debug('Expecting response from command sent - Data received but no EOL yet :(')
                else:
                   _LOGGER.debug('Expecting response from command sent - No Data received')
                   if ( wait_for_response == False ): 
