@@ -247,13 +247,10 @@ def _format_set_mute(zone: int, mute: bool) -> str:
        return 'Z{}MUTEOFF'.format(int(zone))
 
 def _format_set_volume(zone: int, volume: int) -> str:
-#    if _is_int(volume):
-#    volume = abs(volume)
-#    volume = round(volume,0)
-#    else:
-#       # set to default value
-#       volume = abs(VOLUME_DEFAULT) 
-    return 'Z{}VOL{:0=2}'.format(int(zone),int(volume))
+    if _is_int(volume):
+       return 'Z{}VOL{:0=2}'.format(int(zone),int(volume))
+    else:
+       return
 
 def _format_set_treble(zone: int, treble: int) -> bytes:
     treble = int(max(12, min(treble, -12)))
