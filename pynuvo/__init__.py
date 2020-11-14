@@ -330,17 +330,18 @@ def get_nuvo(port_url):
                   receive_buffer += data
 
                   if EOL in receive_buffer:
-                     _LOGGER.debug('Received buffer: %s', receive_buffer)
+                     #_LOGGER.debug('Received buffer: %s', receive_buffer)
                      message, sep, receive_buffer = receive_buffer.partition(EOL)
                      _LOGGER.debug('Received: %s', message)
                      _parse_response(str(message))
                      return(str(message))
                   else:
-                     _LOGGER.debug('Expecting response from command sent - Data received but no EOL yet...')
+                     #_LOGGER.debug('Expecting response from command sent - Data received but no EOL yet...')
                else:
-                  _LOGGER.debug('Expecting response from command sent - No Data received')
+                  _LOGGER.debug('No Data received - Looking again if wait_for_response is True')
                   if ( wait_for_response == False ): 
                      no_data = True
+                      
                   continue
 
             return None
@@ -359,7 +360,7 @@ def get_nuvo(port_url):
 
             # Process expected response
             rtn =  self._listen_maybewait(True)
-#           _LOGGER.debug('Request return: %s', rtn)
+            _LOGGER.debug('process maybewait return value: %s', rtn)
             return rtn
 
         @synchronized
