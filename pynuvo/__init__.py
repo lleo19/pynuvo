@@ -87,10 +87,10 @@ class ZoneStatus(object):
            self.power = bool(0)
         if 'MUTE' in volume:
            self.mute = bool(1)
-#           self.volume = None
+           self.volume = None
         else:
            self.mute = bool(0)
-        self.volume = volume
+           self.volume = volume
 #        self.treble = 0
 #        self.bass = 0
         
