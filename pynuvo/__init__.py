@@ -67,17 +67,17 @@ GRAND_CONCERTO_MUTE_PATTERN = re.compile('#Z(?P<zone>\d),'
 
 EOL = b'\r\n'
 TIMEOUT_OP       = 0.2   # Number of seconds before serial operation timeout
-TIMEOUT_RESPONSE = 2.5   # Number of seconds before command response timeout
+TIMEOUT_RESPONSE = 0.5   # Number of seconds before command response timeout
 VOLUME_DEFAULT  = 60    # Value used when zone is muted or otherwise unable to get volume integer
 
 class ZoneStatus(object):
     def __init__(self
                  ,zone: int
                  ,power: str
-                 ,source: int = '1'
-                 ,volume: int = '60'
-                 ,dnd: int = '0'
-                 ,lock: int = '0'
+                 ,source: int
+                 ,volume: int
+                 ,dnd: int
+                 ,lock: int
                  ):
         self.zone = zone
         self.source = source
